@@ -40,25 +40,25 @@ public class FunkosReactiveRepoImpl implements FunkosReactiveRepo {
         String sql = "SELECT * FROM funkos";
 
         return Flux.usingWhen(
-            databaseManager.getConnectionPool().create(),
-            connection -> Flux.from(connection.createStatement(sql).execute()).flatMap(res->  res.map((row, rm)-> new Funko(row.get("cod", UUID.class),
-                    row.get("myid", Integer.class),
-                    row.get("nombre", String.class),
-                    row.get("modelo", Modelo.class),
-                    row.get("precio", Double.class),
-                    row.get("fecha_lanzamiento", java.time.LocalDate.class)))
-            ),
-            Connection::close
+                databaseManager.getConnectionPool().create(),
+                connection -> Flux.from(connection.createStatement(sql).execute()).flatMap(res -> res.map((row, rm) -> new Funko(row.get("cod", UUID.class),
+                        row.get("myid", Integer.class),
+                        row.get("nombre", String.class),
+                        row.get("modelo", Modelo.class),
+                        row.get("precio", Double.class),
+                        row.get("fecha_lanzamiento", java.time.LocalDate.class)))
+                ),
+                Connection::close
         );
     }
 
     @Override
     public Mono<Funko> findById(UUID id) {
-        logger.info("Buscando Funko con id "+id);
+        logger.info("Buscando Funko con id " + id);
         String sql = "SELECT * FROM funkos WHERE cod = ?";
 
         return Mono.usingWhen(databaseManager.getConnectionPool().create(),
-                connection -> Mono.from(connection.createStatement(sql).bind(0, id).execute()).flatMap(res->  Mono.from(res.map((row, rm)-> new Funko(row.get("cod", UUID.class),
+                connection -> Mono.from(connection.createStatement(sql).bind(0, id).execute()).flatMap(res -> Mono.from(res.map((row, rm) -> new Funko(row.get("cod", UUID.class),
                         row.get("myid", Integer.class),
                         row.get("nombre", String.class),
                         row.get("modelo", Modelo.class),
@@ -66,7 +66,7 @@ public class FunkosReactiveRepoImpl implements FunkosReactiveRepo {
                         row.get("fecha_lanzamiento", java.time.LocalDate.class)))
                 )),
                 Connection::close
-                );
+        );
 
     }
 
@@ -94,11 +94,11 @@ public class FunkosReactiveRepoImpl implements FunkosReactiveRepo {
 
     @Override
     public Mono<Boolean> delete(UUID id) throws SQLException, IOException {
-        logger.info("Eliminado funko con id "+id);
+        logger.info("Eliminado funko con id " + id);
         String sql = "DELETE FROM funko WHERE cod = ?";
 
         return Mono.usingWhen(databaseManager.getConnectionPool().create(),
-                connection -> Flux.from(connection.createStatement(sql).bind(0, id).execute()).flatMap(Result::getRowsUpdated).hasElements() , Connection::close);
+                connection -> Flux.from(connection.createStatement(sql).bind(0, id).execute()).flatMap(Result::getRowsUpdated).hasElements(), Connection::close);
 
 
     }
@@ -118,7 +118,7 @@ public class FunkosReactiveRepoImpl implements FunkosReactiveRepo {
         logger.info("Buscando funko por nombre");
 
         return Mono.usingWhen(databaseManager.getConnectionPool().create(),
-                connection -> Mono.from(connection.createStatement("SELECT * FROM funkos WHERE nombre = ?").bind(0, name).execute()).flatMap(res->  Mono.from(res.map((row, rm)-> new Funko(row.get("cod", UUID.class),
+                connection -> Mono.from(connection.createStatement("SELECT * FROM funkos WHERE nombre = ?").bind(0, name).execute()).flatMap(res -> Mono.from(res.map((row, rm) -> new Funko(row.get("cod", UUID.class),
                         row.get("myid", Integer.class),
                         row.get("nombre", String.class),
                         row.get("modelo", Modelo.class),
