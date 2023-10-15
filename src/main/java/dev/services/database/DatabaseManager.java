@@ -18,7 +18,6 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 
-
 public class DatabaseManager {
 
     private static DatabaseManager instance;
@@ -34,25 +33,12 @@ public class DatabaseManager {
     private DatabaseManager() {
 
         loadProperties();
-
         connectionFactory = ConnectionFactories.get(url);
-
-        ConnectionPoolConfiguration configuration = ConnectionPoolConfiguration.builder(connectionFactory)
-                .maxIdleTime(java.time.Duration.ofMinutes(3))
-                .maxSize(20)
-                .build();
-
-
-
-
+        ConnectionPoolConfiguration configuration = ConnectionPoolConfiguration.builder(connectionFactory).maxIdleTime(java.time.Duration.ofMinutes(3)).maxSize(20).build();
         connectionPool = new ConnectionPool(configuration);
-
-
-        if (initTables){
+        if (initTables) {
             initTables().block();
         }
-
-
     }
 
     public static synchronized DatabaseManager getInstance() {
@@ -63,50 +49,43 @@ public class DatabaseManager {
     }
 
     public void loadProperties() {
-
         try {
             Properties appProps = new Properties();
-            appProps.load(new FileInputStream( ClassLoader.getSystemResource("application.properties").getFile()));
+            appProps.load(new FileInputStream(ClassLoader.getSystemResource("application.properties").getFile()));
             url = appProps.getProperty("db.stringDB");
             initTables = Boolean.parseBoolean(appProps.getProperty("db.loadTables", "false"));
         } catch (Exception e) {
-            logger.error("Error al cargar el fichero de propiedades ",e);
+            logger.error("Error al cargar el fichero de propiedades ", e);
         }
 
     }
 
-    public Mono<Void> initTables(){
-
-        return Flux.fromIterable(initScripts).concatMap(sc -> Mono.usingWhen(connectionFactory.create(),
-                connection -> {
-                    logger.debug("Creando conexión con la base de datos");
-                    String scriptContent = null;
-                    try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(sc)) {
-                        if (inputStream == null) {
-                            return Mono.error(new IOException("No se ha encontrado el fichero de script de inicialización de la base de datos"));
-                        } else {
-                            try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-                                scriptContent = reader.lines().collect(Collectors.joining("\n"));
-                            }
-                        }
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
+    public Mono<Void> initTables() {
+        return Flux.fromIterable(initScripts).concatMap(sc -> Mono.usingWhen(connectionFactory.create(), connection -> {
+            logger.debug("Creando conexión con la base de datos");
+            String scriptContent = null;
+            try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(sc)) {
+                if (inputStream == null) {
+                    return Mono.error(new IOException("No se ha encontrado el fichero de script de inicialización de la base de datos"));
+                } else {
+                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+                        scriptContent = reader.lines().collect(Collectors.joining("\n"));
                     }
-                    Statement statement = connection.createStatement(scriptContent);
-                    return Mono.from(statement.execute());
-                },
-                Connection::close).then()).doOnNext(res -> logger.info("Script ejecutado correctamente")
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            Statement statement = connection.createStatement(scriptContent);
+            return Mono.from(statement.execute());
+        }, Connection::close).then()).doOnNext(res -> logger.info("Script ejecutado correctamente")
 
-        ).doOnComplete(()-> logger.info("Se han ejecutado todos los scripts")).then();
-
+        ).doOnComplete(() -> logger.info("Se han ejecutado todos los scripts")).then();
     }
 
 
     public ConnectionPool getConnectionPool() {
         return connectionPool;
     }
-
-
 
 
 }

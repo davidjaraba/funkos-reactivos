@@ -54,15 +54,7 @@ public class FunkoServiceImpl implements FunkoService {
 
     @Override
     public Mono<Funko> findById(UUID id) throws SQLException, IOException {
-        return funkosCache.get(id)
-                .switchIfEmpty(
-                        funkosReactiveRepo
-                                .findById(id)
-                                .flatMap(funko -> funkosCache.put(funko.codigo(), funko)
-                                        .then(Mono.just(funko))
-                                )
-                )
-                .switchIfEmpty(Mono.error(new FunkoNoEncontradoException("Funko con id " + id + " no encontrado")));
+        return funkosCache.get(id).switchIfEmpty(funkosReactiveRepo.findById(id).flatMap(funko -> funkosCache.put(funko.codigo(), funko).then(Mono.just(funko)))).switchIfEmpty(Mono.error(new FunkoNoEncontradoException("Funko con id " + id + " no encontrado")));
     }
 
 
