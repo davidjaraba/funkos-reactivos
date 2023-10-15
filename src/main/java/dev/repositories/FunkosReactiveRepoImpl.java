@@ -12,7 +12,10 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class FunkosReactiveRepoImpl implements FunkosReactiveRepo {
@@ -42,11 +45,11 @@ public class FunkosReactiveRepoImpl implements FunkosReactiveRepo {
         return Flux.usingWhen(
                 databaseManager.getConnectionPool().create(),
                 connection -> Flux.from(connection.createStatement(sql).execute()).flatMap(res -> res.map((row, rm) -> new Funko(row.get("cod", UUID.class),
-                        row.get("myid", Integer.class),
+                        row.get("myid", Long.class),
                         row.get("nombre", String.class),
-                        row.get("modelo", Modelo.class),
-                        row.get("precio", Double.class),
-                        row.get("fecha_lanzamiento", java.time.LocalDate.class)))
+                        Modelo.valueOf(row.get("modelo", String.class)),
+                        row.get("precio", BigDecimal.class).doubleValue(),
+                        row.get("fecha_lanzamiento", LocalDateTime.class).toLocalDate()))
                 ),
                 Connection::close
         );
@@ -59,11 +62,11 @@ public class FunkosReactiveRepoImpl implements FunkosReactiveRepo {
 
         return Mono.usingWhen(databaseManager.getConnectionPool().create(),
                 connection -> Mono.from(connection.createStatement(sql).bind(0, id).execute()).flatMap(res -> Mono.from(res.map((row, rm) -> new Funko(row.get("cod", UUID.class),
-                        row.get("myid", Integer.class),
+                        row.get("myid", Long.class),
                         row.get("nombre", String.class),
-                        row.get("modelo", Modelo.class),
-                        row.get("precio", Double.class),
-                        row.get("fecha_lanzamiento", java.time.LocalDate.class)))
+                        Modelo.valueOf(row.get("modelo", String.class)),
+                        row.get("precio", BigDecimal.class).doubleValue(),
+                        row.get("fecha_lanzamiento", LocalDateTime.class).toLocalDate()))
                 )),
                 Connection::close
         );
@@ -77,7 +80,7 @@ public class FunkosReactiveRepoImpl implements FunkosReactiveRepo {
 
         return Mono.usingWhen(databaseManager.getConnectionPool().create(),
                 connection -> Flux.from(connection.createStatement(sql).bind(0, entity.codigo()).bind(1, idGenerator.getAndIncrement()).bind(2, entity.nombre())
-                        .bind(3, entity.modelo()).bind(4, entity.precio()).bind(5, entity.fechaLanzamiento()).execute()).then(Mono.just(entity)), Connection::close);
+                        .bind(3, entity.modelo().toString()).bind(4, entity.precio()).bind(5, entity.fechaLanzamiento()).execute()).then(Mono.just(entity)), Connection::close);
 
     }
 
@@ -88,7 +91,7 @@ public class FunkosReactiveRepoImpl implements FunkosReactiveRepo {
 
         return Mono.usingWhen(databaseManager.getConnectionPool().create(),
                 connection -> Flux.from(connection.createStatement(sql).bind(5, entity.codigo()).bind(0, entity.myid()).bind(1, entity.nombre())
-                        .bind(2, entity.modelo()).bind(3, entity.precio()).bind(4, entity.fechaLanzamiento()).execute()).then(Mono.just(entity)), Connection::close);
+                        .bind(2, entity.modelo().toString()).bind(3, entity.precio()).bind(4, entity.fechaLanzamiento()).execute()).then(Mono.just(entity)), Connection::close);
 
     }
 
@@ -119,11 +122,11 @@ public class FunkosReactiveRepoImpl implements FunkosReactiveRepo {
 
         return Mono.usingWhen(databaseManager.getConnectionPool().create(),
                 connection -> Mono.from(connection.createStatement("SELECT * FROM funkos WHERE nombre = ?").bind(0, name).execute()).flatMap(res -> Mono.from(res.map((row, rm) -> new Funko(row.get("cod", UUID.class),
-                        row.get("myid", Integer.class),
+                        row.get("myid", Long.class),
                         row.get("nombre", String.class),
-                        row.get("modelo", Modelo.class),
-                        row.get("precio", Double.class),
-                        row.get("fecha_lanzamiento", java.time.LocalDate.class)))
+                        Modelo.valueOf(row.get("modelo", String.class)),
+                        row.get("precio", BigDecimal.class).doubleValue(),
+                        row.get("fecha_lanzamiento", LocalDateTime.class).toLocalDate()))
                 )),
                 Connection::close
         );

@@ -14,6 +14,7 @@ dependencies {
     implementation("io.projectreactor:reactor-core:3.5.10")
     implementation("io.r2dbc:r2dbc-h2:1.0.0.RELEASE")
     implementation("io.r2dbc:r2dbc-pool:1.0.0.RELEASE")
+    implementation("com.google.code.gson:gson:2.10.1")
     implementation("ch.qos.logback:logback-classic:1.4.11")
 
     testImplementation(platform("org.junit:junit-bom:5.9.2"))
