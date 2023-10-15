@@ -18,7 +18,7 @@ public class IdGenerator {
     }
 
     ReentrantLock lock = new ReentrantLock();
-    int count = 0;
+    int count = 1;
 
 
     public int getAndIncrement() {

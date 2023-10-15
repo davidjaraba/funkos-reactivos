@@ -49,7 +49,7 @@ public class DatabaseManager {
 
 
         if (initTables){
-            initTables();
+            initTables().block();
         }
 
 
@@ -75,9 +75,9 @@ public class DatabaseManager {
 
     }
 
-    public void initTables(){
+    public Mono<Void> initTables(){
 
-        Flux.fromIterable(initScripts).concatMap(sc -> Mono.usingWhen(connectionFactory.create(),
+        return Flux.fromIterable(initScripts).concatMap(sc -> Mono.usingWhen(connectionFactory.create(),
                 connection -> {
                     logger.debug("Creando conexión con la base de datos");
                     String scriptContent = null;
@@ -97,7 +97,7 @@ public class DatabaseManager {
                 },
                 Connection::close).then()).doOnNext(res -> logger.info("Script ejecutado correctamente")
 
-        ).doOnComplete(()-> logger.info("Se han ejecutado todos los scripts")).subscribe();
+        ).doOnComplete(()-> logger.info("Se han ejecutado todos los scripts")).then();
 
     }
 

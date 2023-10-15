@@ -79,8 +79,13 @@ public class FunkosReactiveRepoImpl implements FunkosReactiveRepo {
         String sql = "INSERT INTO funkos (cod, myid, nombre, modelo, precio, fecha_lanzamiento) VALUES (?, ?, ?, ?, ?, ?)";
 
         return Mono.usingWhen(databaseManager.getConnectionPool().create(),
-                connection -> Flux.from(connection.createStatement(sql).bind(0, entity.codigo()).bind(1, idGenerator.getAndIncrement()).bind(2, entity.nombre())
-                        .bind(3, entity.modelo().toString()).bind(4, entity.precio()).bind(5, entity.fechaLanzamiento()).execute()).then(Mono.just(entity)), Connection::close);
+                connection -> Flux.from(connection.createStatement(sql)
+                        .bind(0, entity.codigo())
+                        .bind(1, idGenerator.getAndIncrement())
+                        .bind(2, entity.nombre())
+                        .bind(3, entity.modelo().toString())
+                        .bind(4, entity.precio())
+                        .bind(5, entity.fechaLanzamiento()).execute()).then(Mono.just(entity)), Connection::close);
 
     }
 
@@ -90,18 +95,30 @@ public class FunkosReactiveRepoImpl implements FunkosReactiveRepo {
         String sql = "UPDATE funkos SET nombre = ?, myid = ?, modelo = ?, precio = ?, fecha_lanzamiento = ? WHERE cod = ?";
 
         return Mono.usingWhen(databaseManager.getConnectionPool().create(),
-                connection -> Flux.from(connection.createStatement(sql).bind(5, entity.codigo()).bind(0, entity.myid()).bind(1, entity.nombre())
-                        .bind(2, entity.modelo().toString()).bind(3, entity.precio()).bind(4, entity.fechaLanzamiento()).execute()).then(Mono.just(entity)), Connection::close);
+                connection -> Flux.from(connection.createStatement(sql)
+                        .bind(5, entity.codigo())
+                        .bind(1, entity.myid())
+                        .bind(0, entity.nombre())
+                        .bind(2, entity.modelo().toString())
+                        .bind(3, entity.precio())
+                        .bind(4, entity.fechaLanzamiento()).execute()).then(Mono.just(entity)), Connection::close);
 
     }
 
     @Override
     public Mono<Boolean> delete(UUID id) throws SQLException, IOException {
         logger.info("Eliminado funko con id " + id);
-        String sql = "DELETE FROM funko WHERE cod = ?";
+        String sql = "DELETE FROM funkos WHERE cod = ?";
 
         return Mono.usingWhen(databaseManager.getConnectionPool().create(),
-                connection -> Flux.from(connection.createStatement(sql).bind(0, id).execute()).flatMap(Result::getRowsUpdated).hasElements(), Connection::close);
+                connection -> Flux.from(connection.createStatement(sql).bind(0, id).execute()).flatMap(Result::getRowsUpdated).<Boolean>handle((number, sink) -> {
+            if (number != 0) {
+                sink.next(true);
+            } else {
+                sink.next(false);
+            }
+        })
+        .next(), Connection::close);
 
 
     }
