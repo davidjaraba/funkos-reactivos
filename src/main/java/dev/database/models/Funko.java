@@ -7,6 +7,9 @@ import java.util.UUID;
 
 public record Funko(UUID codigo, long myid,String nombre, Modelo modelo, double precio, LocalDate fechaLanzamiento) {
 
+    public Funko withNombre(String nombre) {
+        return new Funko(codigo, myid, nombre, modelo, precio, fechaLanzamiento);
+    }
 
     @Override
     public String toString() {

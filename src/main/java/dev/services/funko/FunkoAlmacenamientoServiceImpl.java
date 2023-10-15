@@ -66,7 +66,7 @@ public class FunkoAlmacenamientoServiceImpl implements FunkoAlmacenamientoServic
     @Override
     public Mono<Void> backup(String filePath) {
         Gson gson = new GsonBuilder().registerTypeAdapter(LocalDate.class, new LocalDateAdapter()).setPrettyPrinting().create();
-        return readCsv().collectList().publishOn(Schedulers.boundedElastic()).flatMap(funkos -> {
+        return readCsv().collectList().flatMap(funkos -> {
             try {
                 Files.writeString(Path.of(filePath), gson.toJson(funkos));
                 return Mono.empty();

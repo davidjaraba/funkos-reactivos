@@ -13,7 +13,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class FunkosCacheImpl implements FunkosCache<UUID, Funko>{
+public class FunkosCacheImpl implements FunkosCache<UUID, Funko> {
 
     private final Logger logger = LoggerFactory.getLogger(FunkosCacheImpl.class);
 
@@ -22,7 +22,7 @@ public class FunkosCacheImpl implements FunkosCache<UUID, Funko>{
     private final ScheduledExecutorService executorService;
 
 
-    public FunkosCacheImpl(){
+    public FunkosCacheImpl() {
         this.cache = Collections.synchronizedMap(new LinkedHashMap<>(CACHE_SIZE, 0.75f, true) {
             @Override
             protected boolean removeEldestEntry(Map.Entry<UUID, Funko> eldest) {
@@ -37,20 +37,24 @@ public class FunkosCacheImpl implements FunkosCache<UUID, Funko>{
 
     @Override
     public Mono<Void> put(UUID id, Funko value) {
-        logger.info("Añadiendo funko a la cache con id: "+id);
+        logger.info("Añadiendo funko a la cache con id: " + id);
         return Mono.fromRunnable(() -> cache.put(id, value));
     }
 
     @Override
     public Mono<Funko> get(UUID id) {
-        logger.info("Obteniendo funko de la cache con id: "+id);
+        logger.info("Obteniendo funko de la cache con id: " + id);
         return Mono.fromCallable(() -> cache.get(id));
     }
 
     @Override
     public Mono<Void> remove(UUID id) {
-        logger.info("Eliminando funko de la cache con id: "+id);
+        logger.info("Eliminando funko de la cache con id: " + id);
         return Mono.fromRunnable(() -> cache.remove(id));
+    }
+
+    public int size() {
+        return cache.size();
     }
 
     @Override
